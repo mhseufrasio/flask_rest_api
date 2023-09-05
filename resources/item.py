@@ -2,8 +2,8 @@ import uuid
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from db import itens
-from schemas import ItemSchema, ItemUpdateSchema
+
+from ..schemas import ItemSchema, ItemUpdateSchema
 
 blp = Blueprint("Itens", __name__, description="Operações com Itens")
 

@@ -2,8 +2,7 @@ import uuid
 from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from db import stores
-from schemas import StoreSchema
+from ..schemas import StoreSchema
 
 blp = Blueprint("stores",__name__, description="Operações com Stores")
 @blp.route("/store/<string:store_id>")
