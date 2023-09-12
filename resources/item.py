@@ -1,33 +1,37 @@
 from sqlalchemy.exc import SQLAlchemyError
-from ..db import db
-from ..models import ItemModel
+from db import db
+from models import ItemModel
 
-import uuid
-from flask import request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+from flask_jwt_extended import jwt_required, get_jwt
 
-from ..schemas import ItemSchema, ItemUpdateSchema
+from schemas import ItemSchema, ItemUpdateSchema
 
-blp = Blueprint("Itens", __name__, description="Operações com Itens")
+blp = Blueprint("Itens", __name__, description="Operações com Item")
+
 
 @blp.route("/item/<string:item_id>")
 class Item(MethodView):
+    @jwt_required()
     @blp.response(200, ItemSchema)
     def get(self, item_id):
-        #nao implementado
         item = ItemModel.query.get_or_404(item_id)
 
+    @jwt_required()
     def delete(self, item_id):
-        #nao implementado
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Você não tem permissão.")
+
         item = ItemModel.query.get_or_404(item_id)
         db.session.delete(item)
-        return {"message":"Item deletado."}, 200
+        return {"message": "Item deletado."}, 200
 
     @blp.arguments(ItemUpdateSchema)
     @blp.response(200, ItemSchema)
     def put(self, item_data, item_id):
-        #upsert
+        # upsert
         item = ItemModel.query.get(item_id)
         if item:
             item.price = item_data["price"]
@@ -39,11 +43,15 @@ class Item(MethodView):
         db.session.commit()
         return item
 
+
 @blp.route("/item")
 class ItemList(MethodView):
+    @jwt_required()
     @blp.response(200, ItemSchema(many=True))
     def get(self):
         return ItemModel.query.all()
+
+    @jwt_required()
     @blp.arguments(ItemSchema)
     @blp.response(201, ItemSchema)
     def post(self, item_data):

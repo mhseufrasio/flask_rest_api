@@ -1,4 +1,4 @@
-from ..db import db
+from db import db
 
 class TagModel(db.Model):
     __tablename__ = "tags"
@@ -7,4 +7,5 @@ class TagModel(db.Model):
     name = db.Column(db.String(80), unique=True, nullable=False)
     store_id = db.Column(db.Integer, db.ForeignKey("stores.id"), nullable=False)
 
-    store_id = db.relationship("StoreModel", back_populates="tags")
+    store = db.relationship("StoreModel", back_populates="tags")
+    itens = db.relationship("ItemModel", back_populates="tags", secondary="itens_tags")
