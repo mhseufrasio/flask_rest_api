@@ -41,7 +41,7 @@ class UserRegister(MethodView):
         if UserModel.query.filter(UserModel.username == user_data["username"]).first():
             abort(409, message="Este User já existe.")
 
-        user = UserModel(username=user_data["username"], password=pbkdf2_sha256.hash((user_data["password"])))
+        user = UserModel(username=user_data["username"], password=pbkdf2_sha256.hash((user_data["password"])), email=user_data["email"])
         db.session.add(user)
         db.session.commit()
         return {"message": "Usuário criado com sucesso."}
