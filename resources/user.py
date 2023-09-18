@@ -8,7 +8,7 @@ from flask_jwt_extended import create_access_token, get_jwt, jwt_required, creat
 
 from db import db
 from models import UserModel
-from schemas import UserSchema
+from schemas import UserSchema, UserRegisterSchema
 from blocklist import BLOCKLIST
 
 blp = Blueprint("Users", __name__, description="Operações com usuarios")
@@ -36,7 +36,7 @@ def send_simple_message(to, subject, body):
 
 @blp.route("/register")
 class UserRegister(MethodView):
-    @blp.arguments(UserSchema)
+    @blp.arguments(UserRegisterSchema)
     def post(self, user_data):
         if UserModel.query.filter(UserModel.username == user_data["username"]).first():
             abort(409, message="Este User já existe.")
@@ -44,6 +44,9 @@ class UserRegister(MethodView):
         user = UserModel(username=user_data["username"], password=pbkdf2_sha256.hash((user_data["password"])), email=user_data["email"])
         db.session.add(user)
         db.session.commit()
+
+        send_simple_message(to=user.email, subject="Inscrição feita com sucesso.", body=f"Hi {user.username}! You have sucessfully signed to the REST API.")
+
         return {"message": "Usuário criado com sucesso."}
 
 
