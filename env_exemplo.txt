@@ -1,0 +1,4 @@
+DATABASE_URL = postgresql://ebfbumif:VN_V14EH1762oshIXY6bjfVqcnmmBuIF@bubble.db.elephantsql.com/ebfbumif
+MAILGUN_API_KEY=e557b09d92762c2e7066bfe7af0b3f8c-4b98b89f-66d7f865
+MAILGUN_DOMAIN=sandbox60b14d71e88946f2a4d2720693692d1b.mailgun.org
+REDIS_URL=rediss://red-ck4ovut8ggls73940v0g:mR5qtVJcqVSSAAOY7QmYZ6ykaLK9SOIU@oregon-redis.render.com:6379

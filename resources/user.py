@@ -1,6 +1,9 @@
 import os
 
-import requests
+import redis
+from rq import Queue
+from tasks import send_user_registration_email
+
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from passlib.hash import pbkdf2_sha256
@@ -15,6 +18,8 @@ from blocklist import BLOCKLIST
 
 blp = Blueprint("Users", __name__, description="Operações com usuarios")
 
+connection = redis.from_url(os.getenv("REDIS_URL"))
+queue = Queue("emails", connection=connection)
 
 @blp.route("/user/<int:user_id>")
 class User(MethodView):
@@ -30,24 +35,20 @@ class User(MethodView):
         return {"message": "Usuário excluído."}, 200
 
 
-def send_simple_message(to, subject, body):
-    domain = os.getenv("MAILGUN_API_KEY")
-    return requests.post(f"https://api.mailgun.net/v3/{domain}/messages", auth=("api", os.getenv("MAILGUN_API_KEY")),
-                         data={"from": f"Your name <mailgun@{domain}>", "to":[to], "subject": subject, "text": body})
-
-
 @blp.route("/register")
 class UserRegister(MethodView):
     @blp.arguments(UserRegisterSchema)
     def post(self, user_data):
-        if UserModel.query.filter(or_(UserModel.username == user_data["username"], UserModel.email == user_data["email"])).first():
+        if UserModel.query.filter(
+                or_(UserModel.username == user_data["username"], UserModel.email == user_data["email"])).first():
             abort(409, message="Este User já existe.")
 
-        user = UserModel(username=user_data["username"], password=pbkdf2_sha256.hash((user_data["password"])), email=user_data["email"])
+        user = UserModel(username=user_data["username"], password=pbkdf2_sha256.hash((user_data["password"])),
+                         email=user_data["email"])
         db.session.add(user)
         db.session.commit()
 
-        send_simple_message(to=user.email, subject="Inscrição feita com sucesso.", body=f"Hi {user.username}! You have sucessfully signed to the REST API.")
+        queue.enqueue(send_user_registration_email, user.email, user.username)
 
         return {"message": "Usuário criado com sucesso."}
 
@@ -61,7 +62,7 @@ class UserLogin(MethodView):
         if user and pbkdf2_sha256.verify(user_data["password"], user.password):
             acess_token = create_access_token(identity=user.id, fresh=True)
             refresh_token = create_refresh_token(user.id)
-            return {"acess_token": acess_token, "refresh_token":refresh_token}, 200
+            return {"acess_token": acess_token, "refresh_token": refresh_token}, 200
         abort(401, message="Usuário ou senha incorreto.")
 
 
@@ -82,4 +83,4 @@ class TokenRefresh(MethodView):
         new_token = create_access_token(identity=current_user, fresh=False)
         jti = get_jwt()["jti"]
         BLOCKLIST.add(jti)
-        return {"access_token":new_token}, 200
+        return {"access_token": new_token}, 200
