@@ -2,7 +2,7 @@ import os
 
 import redis
 from rq import Queue
-from tasks import send_user_registration_email
+
 
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
@@ -15,6 +15,8 @@ from db import db
 from models import UserModel
 from schemas import UserSchema, UserRegisterSchema
 from blocklist import BLOCKLIST
+
+from tasks import send_user_registration_email
 
 blp = Blueprint("Users", __name__, description="Operações com usuarios")
 
