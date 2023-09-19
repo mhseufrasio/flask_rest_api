@@ -1,0 +1,121 @@
+W = []
+for polinomio in range(P):
+    ones = np.ones(X_treino_normalizado.shape[0], dtype=float)
+    ones = np.array(ones).reshape((-1, 1))
+    X = np.concatenate((ones, X_treino_normalizado), axis=1)
+
+    w = np.dot(np.linalg.pinv(X), Y_treino_normalizado)
+    W.append(w)
+    Y_previsto = np.dot(X,w)
+
+    desnormaliza_Y = escalar_y.inverse_transform(Y_previsto)
+
+    funcao_custo = 0.5*(Y_treino-desnormaliza_Y).T
+    funcao_custo = np.dot(funcao_custo,(Y_treino-desnormaliza_Y))
+    rmse = math.sqrt(funcao_custo)
+    print(rmse)
+    custo.append(rmse)
+    espaco = np.linspace(0, 1)
+
+    print(funcao_custo)
+
+    #plt.plot(Y_previsto)
+    #plt.plot(Y_treino_normalizado)
+
+    X_aux = []
+    for valores in X_novo:
+        X_aux.append(valores**(polinomio+2))
+    X_treino_normalizado = np.concatenate((X_treino_normalizado,X_aux),axis=1)
+
+plt.plot(np.array(custo).reshape(-1,1))
+plt.show()
+
+X_novo = X_teste_normalizado
+custo_teste = []
+for polinomio in range(P):
+    ones = np.ones(X_teste_normalizado.shape[0], dtype=float)
+    ones = np.array(ones).reshape((-1, 1))
+    X = np.concatenate((ones, X_teste_normalizado), axis=1)
+
+    Y_previsto = np.dot(X,W[polinomio])
+    desnormaliza_Y = escalar_y.inverse_transform(Y_previsto)
+
+    funcao_custo = 0.5 * (Y_teste - desnormaliza_Y).T
+    funcao_custo = np.dot(funcao_custo, (Y_teste - desnormaliza_Y))
+    rmse = math.sqrt(funcao_custo)
+    custo_teste.append(rmse)
+    espaco = np.linspace(0, 1)
+
+    X_aux = []
+    for valores in X_novo:
+        X_aux.append(valores**(polinomio+2))
+    X_teste_normalizado = np.concatenate((X_teste_normalizado,X_aux),axis=1)
+
+plt.plot(np.array(custo_teste).reshape(-1, 1))
+plt.show()
+
+X_treino_normalizado = escalar_x.transform(X_treino)
+lbd = 0.01
+X_novo = X_treino_normalizado
+custo = []
+for polinomio in range(P):
+    ones = np.ones(X_treino_normalizado.shape[0], dtype=float)
+    ones = np.array(ones).reshape((-1, 1))
+    X = np.concatenate((ones, X_treino_normalizado), axis=1)
+
+    w = np.dot(np.linalg.pinv(X), Y_treino_normalizado)
+    W_0 = w[0]
+    w = np.dot(X.T,X)
+    I = np.eye(w.shape[0],w.shape[1])
+    w += lbd*I
+    w = np.linalg.inv(w)
+    waux = np.dot(X.T,Y_treino_normalizado)
+    w = np.dot(w,waux)
+    w[0] = W_0
+    W.append(w)
+    Y_previsto = np.dot(X,w)
+
+    desnormaliza_Y = escalar_y.inverse_transform(Y_previsto)
+
+    funcao_custo = 0.5*(Y_treino-desnormaliza_Y).T
+    funcao_custo = np.dot(funcao_custo,(Y_treino-desnormaliza_Y))
+    W_mod = np.dot(w.T, w)
+    funcao_custo += (lbd/2)*W_mod
+    rmse = math.sqrt(funcao_custo[0])
+    custo.append(rmse)
+    espaco = np.linspace(0, 1)
+
+    X_aux = []
+    for valores in X_novo:
+        X_aux.append(valores**(polinomio+2))
+    X_treino_normalizado = np.concatenate((X_treino_normalizado,X_aux),axis=1)
+
+plt.plot(np.array(custo).reshape(-1, 1))
+plt.show()
+
+X_teste_normalizado = escalar_x.transform(X_teste)
+X_novo = X_teste_normalizado
+custo_teste = []
+for polinomio in range(P):
+    ones = np.ones(X_teste_normalizado.shape[0], dtype=float)
+    ones = np.array(ones).reshape((-1, 1))
+    X = np.concatenate((ones, X_teste_normalizado), axis=1)
+
+    Y_previsto = np.dot(X,W[polinomio])
+    desnormaliza_Y = escalar_y.inverse_transform(Y_previsto)
+
+    funcao_custo = 0.5 * (Y_teste - desnormaliza_Y).T
+    funcao_custo = np.dot(funcao_custo, (Y_teste - desnormaliza_Y))
+    W_mod = np.dot(W[polinomio].T, W[polinomio])
+    funcao_custo += (lbd / 2) * W_mod
+    rmse = math.sqrt(funcao_custo)
+    custo_teste.append(rmse)
+    espaco = np.linspace(0, 1)
+
+    X_aux = []
+    for valores in X_novo:
+        X_aux.append(valores**(polinomio+2))
+    X_teste_normalizado = np.concatenate((X_teste_normalizado,X_aux),axis=1)
+
+plt.plot(np.array(custo_teste).reshape(-1, 1))
+plt.show()

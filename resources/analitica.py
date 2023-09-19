@@ -21,10 +21,11 @@ Y = np.array(Y).reshape((-1,1))
 Y = scaler.fit_transform(Y)
 
 Xt = X.T
+X = np.dot(X,Xt)
 w = np.dot(np.linalg.pinv(X),Y)
-espaco = np.linspace(-1,1)
-reta = w[0] + w[1]*espaco
+espaco = np.linspace(0,1)
 plt.plot(np.dot(X,w))
 plt.plot(Y)
 plt.show()
+print(w.shape)
 print(w)
